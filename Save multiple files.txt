@@ -1,0 +1,25 @@
+# Get a list of all selected sounds
+
+
+
+k = numberOfSelected ("Sound")
+
+for i from 1 to k
+
+ sound'i'= selected ("Sound",i) 
+
+endfor
+
+
+
+# loop through all sounds, save them
+
+for i from 1 to k
+
+ select sound'i'
+
+ name$ = selected$ ("Sound")
+
+ Save as WAV file... /Users/Dylan/Desktop/'name$'.wav
+
+endfor

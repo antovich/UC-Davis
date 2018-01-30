@@ -1,0 +1,85 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1265\cocoasubrtf210
+{\fonttbl\f0\fnil\fcharset0 LucidaGrande;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww32960\viewh15300\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs24 \cf0 # This creates a tab delimited txt with the pitch, amplitude and duration information  \
+# for all labeled intervals in a text grid, except those specified by the ignore$ variable. The file will be named AnalysesFor<SOUNDFILE>\
+# The Sound name column will not be useful, so at the top of the file is the list of Label names in the order the occur in the analyses \
+# (can be used to replace the Sound name variable, if any containing the ignore$ variable string are removed), as well as durations (since you won't get this for the silences below)\
+\
+# Select the top corresponding TextGrid and Sound object to perform analyses, and it will automatically select the next TextGrid and Sound \
+# (if there's more than one and they're in the correct order). To run the next set just hit run again in the Praat script window.\
+\
+# Only have the TextGrid and Sound Objects in the Objects window, to avoid accidentally deleting sound files you're working on\
+\
+# Change the .txt file location at the top and very bottom, as well as the ignore$ variable, if necessary\
+\
+clearinfo\
+\
+ignore$ = "SILENCE"	\
+tgID = selected("TextGrid")\
+soID = selected("Sound") 	\
+							\
+namefile$ = selected$("Sound")\
+deleteFile ("/Users/Dylan/Desktop/AnalysesFor'namefile$'.txt") \
+Extract non-empty intervals... 1 no\
+numsound = numberOfSelected("Sound")\
+for isound from 1 to numsound\
+	sound'isound' = selected("Sound", isound)\
+endfor\
+print Label names'tab$'duration_sec\
+printline\
+for isound from 1 to numsound\
+	select sound'isound'\
+	name$ = selected$("Sound")\
+	dur = Get total duration\
+	print  'name$''tab$''dur'\
+	printline\
+endfor\
+for isound from 1 to numsound\
+	select sound'isound'\
+	Remove\
+endfor\
+printline\
+printline\
+select tgID\
+plus soID\
+	\
+Extract intervals where... 1 no "does not contain" 'ignore$'\
+print Sound_name'tab$'min_pitch_Hz'tab$'max_pitch_Hz'tab$'mean_pitch_Hz'tab$'median_pitch_Hz'tab$'min_amp_dB'tab$'max_amp_dB'tab$'mean_amp_dB'tab$'median_amp_dB'tab$'duration_sec\
+printline\
+numsound = numberOfSelected("Sound")\
+for isound from 1 to numsound\
+	sound'isound' = selected("Sound", isound)\
+endfor\
+for isound from 1 to numsound\
+	select sound'isound'\
+	name$ = selected$("Sound")\
+        To Pitch... 0.0 75 600\
+	minpitch = Get minimum... 0 0 Hertz Parabolic\
+	maxpitch = Get maximum... 0.0 0.0 Hertz Parabolic\
+	meanpitch = Get mean... 0.0 0.0 Hertz\
+	medianpitch = Get quantile... 0.0 0.0 0.50 Hertz\
+        Remove\
+	select sound'isound'\
+	To Intensity... 100 0 yes\
+	minamp = Get minimum... 0 0 Parabolic\
+	maxamp = Get maximum... 0.0 0.0 Parabolic\
+	meanamp = Get mean... 0.0 0.0 \
+	medianamp = Get quantile... 0.0 0.0 0.5 \
+	Remove\
+	select sound'isound'\
+	dur = Get total duration\
+	print 'name$''tab$''minpitch''tab$''maxpitch''tab$''meanpitch''tab$''medianpitch''tab$' 'minamp''tab$''maxamp''tab$''meanamp''tab$''medianamp''tab$''dur' \
+	printline\
+	select sound'isound'\
+endfor\
+for isound from 1 to numsound\
+	select sound'isound'\
+	Remove\
+endfor\
+fappendinfo /Users/Dylan/Desktop/AnalysesFor'namefile$'.txt\
+select tgID+1\
+plus soID+1}

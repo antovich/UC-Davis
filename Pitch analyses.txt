@@ -1,0 +1,62 @@
+# This creates a tab delimited txt with the min max median and mean pitch (Hz) 
+# of a sound object as well as the object's duration (sec)
+# Added amplitude analyses as well
+
+# Make sure that you only have the sound files you want analyzed in your objects window
+# and that the Praat info window doesn't have anything in it (e.g. is closed or blank)
+
+# Change the .txt file name at the very bottom, if necessary
+
+select all
+
+To Pitch... 0.0 75 600
+
+p = numberOfSelected("Pitch")
+
+for j from 1 to p
+	select all
+	pitch [j] = selected ("Pitch", j)
+endfor
+	print 'tab$'min pitch (Hz)
+	print 'tab$'max pitch (Hz)
+	print 'tab$'mean (Hz)
+	print 'tab$'median (Hz)
+	print 'tab$'duration (sec)
+	printline
+for j from 1 to p
+	myPitch = selected("Pitch", j)
+	name$ = selected$("Pitch", j)	
+	print Created from 'name$' 
+	
+	select myPitch
+	min = Get minimum... 0.0 0.0 Hertz Parabolic
+	print 'tab$''min'
+	select myPitch
+	max = Get maximum... 0.0 0.0 Hertz Parabolic
+	print 'tab$''max' 
+	select myPitch	
+	mean = Get mean... 0.0 0.0 Hertz
+	print 'tab$''mean'
+	select myPitch
+	median = Get quantile... 0.0 0.0 0.50 Hertz
+	print 'tab$''median'
+	select myPitch
+	duration = Get total duration
+	print 'tab$''duration'
+	printline
+	select all
+endfor
+
+p = numberOfSelected("Pitch")
+
+for j from 1 to p
+	pitch [j] = selected ("Pitch", j)
+endfor
+
+for j from 1 to p
+	select pitch [j]
+	Remove
+	select all
+endfor
+
+fappendinfo /Users/Dylan/Desktop/Analyses.txt
