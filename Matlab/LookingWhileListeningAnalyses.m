@@ -1,3 +1,5 @@
+% This examines infant looking patterns across trials in a looking-while-listening task 
+
 clear 
 format SHORTG
 % load data
