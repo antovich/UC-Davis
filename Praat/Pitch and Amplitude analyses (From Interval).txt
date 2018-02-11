@@ -1,0 +1,48 @@
+# This creates a tab delimited txt with the pitch, amplitude and duration information  
+# for all labeled intervals in a text grid. The file will be named AnalysesFor<SOUNDFILE>
+
+# Select TextGrid and Sound object to perform analyses
+# Only have the TextGrid and Sound Objects in the Objects window, to avoid accidentally deleting sound files you're working on
+
+# Change the .txt file location at the top and very bottom, if necessary
+
+
+clearinfo
+print sound_name'tab$'duration_sec'tab$'mean_pitch_Hz'tab$'min_pitch_Hz'tab$'max_pitch_Hz'tab$'mean_amp_dB'tab$'min_amp_dB'tab$'max_amp_dB'tab$'						
+tgID = selected("TextGrid")
+soID = selected("Sound") 	
+Extract non-empty intervals... 1 no
+printline
+numsound = numberOfSelected("Sound")
+for isound from 1 to numsound
+	sound'isound' = selected("Sound", isound)
+endfor
+for isound from 1 to numsound
+	select sound'isound'
+	name$ = selected$("Sound")
+        To Pitch... 0.0 75 600
+	minpitch = Get minimum... 0.0 0.0 Hertz Parabolic
+	maxpitch = Get maximum... 0.0 0.0 Hertz Parabolic
+	meanpitch = Get mean... 0.0 0.0 Hertz
+	medianpitch = Get quantile... 0.0 0.0 0.50 Hertz
+       Remove
+	select sound'isound'
+	To Intensity... 100 0 yes
+	minamp = Get minimum... 0 0 Parabolic
+	maxamp = Get maximum... 0.0 0.0 Parabolic
+	meanamp = Get mean... 0.0 0.0 
+	medianamp = Get quantile... 0.0 0.0 0.5 
+	Remove
+	select sound'isound'
+	dur = Get total duration
+	print 'name$''tab$''dur''tab$''meanpitch''tab$''minpitch''tab$''maxpitch''tab$''meanamp''tab$''minamp''tab$''maxamp' 
+	printline
+	select sound'isound'
+endfor
+for isound from 1 to numsound
+	select sound'isound'
+	Remove
+endfor
+fappendinfo /Users/Dylan/Desktop/AnalysesForCSTAT.txt
+select tgID+1
+plus soID+1
