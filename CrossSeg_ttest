@@ -1,0 +1,43 @@
+# Conduct a two-way, dependent/repeated measures t-test after checking/removing outliers
+
+import pandas as pd
+%matplotlib inline
+import numpy as np
+from scipy.stats import ttest_rel
+
+# CSV file name
+fileName = "CrossSeg ALL MEASURES 05-25-18.csv"
+# CSV file path
+filePath = "/Users/Dylan/Desktop/"
+# Column name with condition indicator
+condVar = "Initial Lang Vers (L1 Slow, L1 Pause, Isolated, Unrelated) "
+# Condition name to select
+condCurr = "Isolated"
+# Column name for first outcome variable for t-test
+DVrepeat1 = "Word Average"
+# Column name for second outcome variable for t-test
+DVrepeat2 = "Part-word Average"
+# Column name to search for outliers
+DVoutlier = "Difference W-PW"
+# Number of SD away from mean to define outlier
+outSD = 2
+# Read in data
+df = pd.read_csv(filePath+fileName)
+
+# Subset by condition (condCurr) and cut outliers by removing any rows with values in the DVoutlier column with abs value greater than specified sd (outSD) beyond the mean
+dfClean = df[df[condVar]==condCurr][np.abs(df[DVoutlier][df[condVar]==condCurr]-df[DVoutlier][df[condVar]==condCurr].mean())<=(outSD*df[DVoutlier][df[condVar]==condCurr].std())]
+
+# Repeated measures t-test for DVrepeat1 and DVrepeat2 columns
+[t_value,p_value] = ttest_rel(dfClean[DVrepeat1], dfClean[DVrepeat2])
+
+# Number of observations (n_rows) and variables (p_col)
+[n_rows,p_col] = dfClean.shape
+
+DVmean = dfClean[DVoutlier].mean()
+
+dfClean
+
+# List of variable names
+df.columns.values
+# List of condition names
+df[condVar].unique()

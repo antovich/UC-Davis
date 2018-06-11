@@ -1,0 +1,86 @@
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+import sklearn
+from scipy import stats
+
+# Create pandas dataframe of data
+data = pd.read_csv('/Users/Dylan/Desktop/Current Data Files/For Coding Practice/kc_house_data.csv')
+# Examine data
+data.head()
+# Varible names
+data.columns
+# Scatter plot of price and grade
+
+plt.scatter(y = 'price', x = 'grade', data = data, marker='x')
+plt.xticks(rotation=0)
+plt.ylabel('Price')
+plt.xlabel('Grade')
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(x = data.grade, y = data.price)
+line = slope*data.grade+intercept
+
+plt.plot(data.grade, line, '--c')
+
+from pandas.plotting import scatter_matrix
+
+#Look at distribution of each variable
+data.hist(figsize = (20,20))
+attributes = ['bedrooms','bathrooms','sqft_living','floors','condition', 'grade']
+
+#Look at pairwise correlations between variables (and also kernel distribution estimation plot for each variable )
+dataPredict = data[attributes]
+scatter_matrix(dataPredict, alpha = 0.2, figsize = (20, 20), diagonal = 'kde')
+
+
+# Describe data
+data['price'].mean()
+data.price[data['waterfront']==1].mean()
+data.price[data['waterfront']==0].mean()
+
+
+
+# Subset relevant variables
+attributes = ['bedrooms','bathrooms','sqft_living','sqft_lot','floors','waterfront','view', 'condition', 'grade',
+       'sqft_above', 'sqft_basement', 'yr_built', 'yr_renovated', 'zipcode',
+       'lat', 'long', 'sqft_living15', 'sqft_lot15']
+
+dataPredict = data[attributes]
+
+# Machine learning regression model
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error
+from sklearn.linear_model import RidgeCV
+
+# Get random 25% of data for training
+train = data.sample(frac=0.75, random_state=1)
+test = data.loc[~data.index.isin(train.index)]
+
+x_train = train[attributes]
+y_train = train.price
+x_test = test[attributes]
+y_test = test.price
+
+# Fit linear regression model
+lr = LinearRegression(normalize=True)
+lr.fit(x_train, y_train)
+predictions = lr.predict(x_test)
+
+mae = mean_absolute_error(y_test, predictions)
+
+print (mae)
+
+#Fit ridge regression model
+rrm = RidgeCV(alphas=(0.01, 0.1, 10.0), normalize = True)
+rrm.fit(x_train, y_train)
+prediction_rrm = rrm.predict(x_test)
+
+mae_rrm = mean_absolute_error(y_test, prediction_rrm)
+
+print(mae_rrm)
+
+# Geopandas mapping
+
+import geopandas as gpd

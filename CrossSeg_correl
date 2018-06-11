@@ -1,0 +1,59 @@
+import pandas as pd
+%matplotlib inline
+import numpy as np
+from scipy.stats import ttest_rel
+
+# CSV file name
+fileName = "CrossSeg ALL MEASURES 05-25-18.csv"
+# CSV file path
+filePath = "/Users/Dylan/Desktop/"
+# Read in CSV file
+df = pd.read_csv(filePath+fileName)
+df.columns.values
+
+# Subset relevant variables for correlation analysis
+dfCorr = df[['SubjectID', 'Age','Difference W-PW',
+'MomEdLevel_6ptscale', 'DadEdLevel_6ptscale', 'AverageEdParent_6ptscale', 'CombinedEdParent_12ptscale',
+'CDI Understands (English)', 'CDI Understands and Says (English)','Total Comprehension (CDI Understands + Understands and Says) (English)',
+'Bayley Raw Score', 'Bayley Composite Score',
+'2S Difference Change-Unchange','4S Difference Change-Unchange']]
+
+# Get correlation matrix
+dfCorr.corr()
+# Get descriptives
+dfCorr.describe()
+# Get rid of NA values listwise
+dfCorrClean = dfCorr.dropna()
+
+# Get p-values for particular variable pairs
+from scipy.stats import pearsonr
+pearsonr(dfCorrClean['Bayley Composite Score'], dfCorrClean['CombinedEdParent_12ptscale']) 
+
+# Subset by status (I-B, I-G, O)
+df['Status'].unique()
+dfIG = df[df['Status'].str.contains('I-G|I-G |I-G|I-G (but lang criteria)')]
+
+# Subset relevant variables again
+dfIGCorr = dfIG[['SubjectID', 'Age','Difference W-PW',
+'MomEdLevel_6ptscale', 'DadEdLevel_6ptscale', 'AverageEdParent_6ptscale', 'CombinedEdParent_12ptscale',
+'CDI Understands (English)', 'CDI Understands and Says (English)','Total Comprehension (CDI Understands + Understands and Says) (English)',
+'Bayley Raw Score', 'Bayley Composite Score',
+'2S Difference Change-Unchange','4S Difference Change-Unchange']]
+
+# Get correlation matrix
+dfIGCorr.corr()
+# Get descriptives
+dfIGCorr.describe()
+
+# Regression analysis
+import statsmodels.api as sm
+
+X = dfCorrClean[['CombinedEdParent_12ptscale']] ## X input variables/independent variables
+y = dfCorrClean['Bayley Composite Score'] ## Y output/dependent variable
+X = sm.add_constant(X) ## add an intercept (beta_0) to the model
+
+model = sm.OLS(y, X).fit() ## sm.OLS(output, input)
+predictions = model.predict(X)
+
+# Print out the statistics
+model.summary()
