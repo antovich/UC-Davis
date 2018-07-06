@@ -1,0 +1,110 @@
+df = read.csv('/Users/Dylan/Desktop/Current Data Files/BiStat 2-Lang Vers 6-23-18 FULL FINAL.csv')
+
+colnames(df)
+
+# Rename repeated measure columns (for reshape(), must have same name for each column, differentiated by a number e.g., trial_1, trial_2, etc.)
+names(df)[names(df) == 'TOTAL.Part.word.Average'] <- 'Looking_1'
+names(df)[names(df) == 'TOTAL.Word.Average'] <- 'Looking_2'
+
+# Reshape to long format
+df.long<-reshape(df, varying=c("Looking_1","Looking_2"), direction = "long", timevar = "TrialType_1isPartWord_2isWord", sep="_")
+
+# Save long format file
+write.csv(df.long,'/Users/Dylan/Desktop/LongFormatBiStat.csv')
+colnames(df.long)
+# Import Bayes package
+require(BayesFactor)
+# Bayes factor with
+bf = ttestBF(formula = TOTAL.Difference.W.PW ~ Monolingual.Bilingual, data = df)
+
+bf
+#Mixed witihin-between ANOVA (Looking = DV, Monolingual.Bilingual = between, TrialType = within)
+aov_groupMonoBi_trialWordPartword <- aov(Looking ~ Monolingual.Bilingual*TrialType_1isPartWord_2isWord + Error(id/TrialType_1isPartWord_2isWord), data=df.long)
+
+summary(aov_groupMonoBi_trialWordPartword)
+
+# Create binary looking variable 1 = familiarity; 0 = novelty pref
+df$BinaryLooking <- ifelse(df$TOTAL.Difference.W.PW >= 0, 1, 0)
+
+# Create separate dataframes for monolingual and bilinguals
+dfMono = subset(df, Monolingual.Bilingual == 'Monolingual')
+dfBi = subset(df, Monolingual.Bilingual == 'Bilingual')
+
+# Get number of males and females in each group
+sum(dfMono$Gender == 'M')
+
+#T-test for null hypothesis that monolingual looking time does not differ from zero
+t.test(dfMono$TOTAL.Difference.W.PW)
+
+#T-test for null hypothesis that bilingual looking time does not differ from zero
+t.test(dfBi$TOTAL.Difference.W.PW)
+
+
+
+#Compare looking time differences scores between monolinguals and bilinguals
+ttest1 = t.test(dfBi$TOTAL.Difference.W.PW,dfMono$TOTAL.Difference.W.PW)
+
+#Compare mono and bilingual demographics and cognitive measures
+p_valueList = sapply(data.frame(df$TOTAL.Difference.W.PW, df$Median, df$SubLogParentEdAvg,
+  df$SubLogBayley.Composite.Score, df$AnBTotalCor, df$AnBNumSwitches, df$AnBAvgNumIncorrect),
+  function(i) t.test(i ~ df$Monolingual.Bilingual)$p.value)
+
+#Using multiple comparison adjustment for p-values (false discovery rate)
+p.adjust(p_valueList, method = 'bonf')
+
+
+#Zipcode based income comparison (median)
+ttest3 = t.test(dfBi$Median,dfMono$Median)
+# Parent education comparison (1 = eigth grade ed; 7 = doctoral degree)
+ttest4 = t.test(dfBi$SubLogParentEdAvg,dfMono$SubLogParentEdAvg)
+
+# Bayley performance comparison
+ttest5 = t.test(dfBi$SubLogBayley.Composite.Score,dfMono$SubLogBayley.Composite.Score)
+
+# AnotB performance num correct comparison
+ttest6 = t.test(dfBi$AnBTotalCor,dfMono$AnBTotalCor)
+
+# AnotB performance num switches
+ttest7 = t.test(dfBi$AnBNumSwitches,dfMono$AnBNumSwitches)
+# AnotB performance avg number of incorrect reaches after a switch
+ttest8 = t.test(dfBi$AnBAvgNumIncorrect,dfMono$AnBAvgNumIncorrect)
+
+ttest1
+
+p.adjust()
+
+
+# Models regressing looking time on primary variables
+linearMod1 <- lm(TOTAL.Difference.W.PW ~ Monolingual.Bilingual, data=df)
+linearMod2 <- lm(TOTAL.Difference.W.PW ~ Age + Gender + SubLogParentEdAvg + Mean, data=df)
+linearMod3 <- lm(TOTAL.Difference.W.PW ~ Monolingual.Bilingual + SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor, data=df)
+linearModFULL <- lm(TOTAL.Difference.W.PW ~ Age + Gender + SubLogParentEdAvg + Mean + Monolingual.Bilingual + SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor, data=df)
+
+# Models regressing looking time on primary variables for Monolinguals
+linearMod1Mono <- lm(TOTAL.Difference.W.PW ~ Age + Gender + SubLogParentEdAvg + Mean, data=dfMono)
+linearMod2Mono <- lm(TOTAL.Difference.W.PW ~ SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor, data=dfMono)
+linearModFULLMono <- lm(TOTAL.Difference.W.PW ~ Age + Gender + SubLogParentEdAvg + Mean + SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor, data=dfMono)
+
+# Models regressing looking time on primary variables for Bilinguals
+linearMod1Bi <- lm(TOTAL.Difference.W.PW ~ Age + Gender + SubLogParentEdAvg + Mean, data=dfBi)
+linearMod2Bi <- lm(TOTAL.Difference.W.PW ~ SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor, data=dfBi)
+linearModFULLBi <- lm(TOTAL.Difference.W.PW ~ Age + Gender + SubLogParentEdAvg + Mean + SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor, data=dfBi)
+
+
+# Logistic models regressing binary looking time variable on primary variables for all subs
+logitMod1BINARY <- glm(BinaryLooking ~ Monolingual.Bilingual,family=binomial(link='logit'),data=df)
+logitMod2BINARY <- glm(BinaryLooking ~ Age + Gender + SubLogParentEdAvg + Mean,family=binomial(link='logit'),data=df)
+logitMod3BINARY <- glm(BinaryLooking ~ Monolingual.Bilingual + SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor,family=binomial(link='logit'),data=df)
+logitModFULLBINARY <- glm(BinaryLooking ~ Age + Gender + SubLogParentEdAvg + Mean + Monolingual.Bilingual + SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor,family=binomial(link='logit'),data=df)
+# Logistic models regressing binary looking time variable on primary variables for Monolinguals
+logitMod1BINARYMono <- glm(BinaryLooking ~ Age + Gender + SubLogParentEdAvg + Mean,family=binomial(link='logit'),data=dfMono)
+logitMod2BINARYMono <- glm(BinaryLooking ~ SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor,family=binomial(link='logit'),data=dfMono)
+#!!!logitModFULLBINARYMono appears to have a nearly significant predictor of Bayley score
+logitModFULLBINARYMono <- glm(BinaryLooking ~ Age + Gender + SubLogParentEdAvg + Mean + SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor,family=binomial(link='logit'),data=dfMono)
+
+# Logistic models regressing binary looking time variable on primary variables for bilinguals
+logitMod1BINARYBi <- glm(BinaryLooking ~ Age + Gender + SubLogParentEdAvg + Mean,family=binomial(link='logit'),data=dfBi)
+logitMod2BINARYBi <- glm(BinaryLooking ~ SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor,family=binomial(link='logit'),data=dfBi)
+#!!!logitModFULLBINARYMono appears to have a nearly significant predictor of Bayley score
+logitModFULLBINARYBi <- glm(BinaryLooking ~ Age + Gender + SubLogParentEdAvg + Mean + SubLogCDI.Conceptual.Vocab...TOTAL + SubLogBayley.Composite.Score + AnBTotalCor,family=binomial(link='logit'),data=dfBi)
+summary(logitModFULLBINARYBi)
