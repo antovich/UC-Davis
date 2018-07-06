@@ -1,0 +1,193 @@
+import numpy as np
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from pandas.plotting import scatter_matrix
+import seaborn as sns
+from scipy.stats import ttest_rel, ttest_ind
+%matplotlib inline
+
+# CSV file name
+fileName = "BiStat 2-Lang Vers 6-23-18 FULL FINAL.csv"
+# CSV file path
+filePath = "/Users/Dylan/Desktop/Current Data Files/"
+# Column name with condition indicator
+GroupVar = "Monolingual-Bilingual"
+# Condition name to select
+GroupCurr = "Bilingual"
+# Column name for first outcome variable for t-test
+DVrepeat1 = "TOTAL Word Average"
+# Column name for second outcome variable for t-test
+DVrepeat2 = "TOTAL Part-word Average"
+# Column name to search for outliers
+DVmain = "TOTAL Difference W-PW"
+# Number of SD away from mean to define outlier
+outSD = 2
+# Read in data
+df = pd.read_csv(filePath+fileName)
+#Get column names
+df.columns.values
+# List of group names
+df[GroupVar].unique()
+
+
+#Graph bilingual vs monolingual looking time as stripplot
+plt.figure(figsize=(3,5))
+sns.set(style="whitegrid", color_codes=True, font_scale=1.5)
+ax = sns.stripplot(x=GroupVar, y=DVmain, data=df, jitter=.05, palette="Set1")
+#Can add boxplot
+#sns.boxplot(x="Monolingual-Bilingual", y="Mean", data=df, width=0.5)
+ax.set(xlabel='', ylabel='Listening-time Difference Score (sec)', ylim=(-5, 5))
+ax.axhline(y=0, color = 'grey')
+plt.savefig(filePath+'BiStatBiMono.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+#Graph bilingual vs. monolingual demographic variables as boxplots
+plt.figure(figsize=(3,5))
+ax2 = sns.boxplot(x="Monolingual-Bilingual", y="Mean", data=df, width=0.5, palette="Set1")
+ax2.set(ylabel='Estimated Household Income ($)', xlabel='', ylim = (30000,150000))
+plt.savefig(filePath+'BiStatIncome.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+plt.figure(figsize=(3,5))
+ax2 = sns.boxplot(x="Monolingual-Bilingual", y="SubLogParentEdAvg", data=df, width=0.5, palette="Set1")
+ax2.set(ylabel='Parent Education (7pt Scale)', xlabel='', ylim = (0,7.5))
+plt.savefig(filePath+'BiStatEd.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+plt.figure(figsize=(3,5))
+ax2 = sns.barplot(x="Monolingual-Bilingual", y="SubLogParentEdAvg", data=df, palette="Set1")
+ax2.set(ylabel='Parent Education (7pt Scale)', xlabel='', ylim = (0,7.5))
+plt.savefig(filePath+'BiStatEdBar.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+plt.figure(figsize=(3,5))
+ax2 = sns.boxplot(x="Monolingual-Bilingual", y="SubLogBayley Composite Score", data=df, width=0.5, palette="Set1")
+ax2.set(ylabel='Bayley Cognitive Scale Composite Score', xlabel='', ylim = (70,140))
+plt.savefig(filePath+'BiStatBayley.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+plt.figure(figsize=(3,5))
+ax2 = sns.boxplot(x="Monolingual-Bilingual", y="AnBTotalCor", data=df, width=0.5, palette="Set1")
+ax2.set(ylabel='Total Correct Reach Trials', xlabel='', ylim = (0,10))
+plt.savefig(filePath+'BiStatBayley.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+plt.figure(figsize=(3,5))
+ax2 = sns.boxplot(x="Monolingual-Bilingual", y="SubLogCDI Conceptual Vocab - TOTAL", data=df, width=0.5, palette="Set1")
+ax2.set(ylabel='Conceptual Vocabulary', xlabel='')
+plt.savefig(filePath+'BiStatConceptVocab.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+plt.figure(figsize=(3,5))
+ax2 = sns.boxplot(x="Monolingual-Bilingual", y="Understands + Understands and Says Total", data=df, width=0.5, palette="Set1")
+ax2.set(ylabel='English Vocabulary', xlabel='')
+plt.savefig(filePath+'BiStatEngVocab.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+plt.figure(figsize=(3,5))
+ax = sns.violinplot(x="Monolingual-Bilingual", y="SubLogBayley Composite Score", data=df, palette="Set1", width=0.5)
+ax.set(xlabel='', ylabel='Bayley Cognitive Scale Composite Score', ylim=(70,140))
+plt.savefig(filePath+'BiStatBayleyViolin.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+plt.figure(figsize=(3,5))
+ax = sns.violinplot(x="Monolingual-Bilingual", y="Understands + Understands and Says Total", data=df, palette="Set1")
+ax.set(xlabel='', ylabel='English Vocabulary')
+plt.savefig(filePath+'BiStatEngVocabViolin.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+
+plt.figure(figsize=(3,3))
+ax = sns.boxplot(x="Monolingual-Bilingual", y="AnBTotalCor", data=df, palette="Set1", width=0.5)
+ax.set(xlabel='', ylabel='Total Correct Reaches', ylim=(0,10))
+plt.savefig(filePath+'BiStatAnBBox.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+# Data to plot
+labels = ['Spanish [12]','Russian [3]','Arabic [1]','Cantonese [1]', 'Hindi [1]', 'Italian [1]', 'Korean [1]', 'Mandarin [1]', 'Polish [1]', 'Tagalog [1]']
+sizes = [12, 3, 1, 1, 1, 1, 1, 1, 1,1]
+cmap = plt.cm.Reds_r
+colors = cmap(np.linspace(0.2, .8, len(sizes)))
+
+# Plot
+ax = plt.pie(sizes, labels=labels,shadow=False, colors = colors, startangle=-98, labeldistance=1.2)
+plt.axis('equal')
+plt.savefig(filePath+'BilingualPieChart.png', dpi = 330, format = 'png',bbox_inches="tight")
+
+#Get GroupCurr subset of data by using GroupVar variable
+dfSubset = df[df[GroupVar] == GroupCurr]
+
+# Repeated measures t-test for DVrepeat1 and DVrepeat2 columns
+[t_value,p_value] = ttest_rel(dfSubset[DVrepeat1], dfSubset[DVrepeat2])
+
+p_value
+t_value
+
+#Mono vs Bi t-test
+MonoLook = df[DVmain][df[GroupVar] == 'Monolingual']
+BiLook = df[DVmain][df[GroupVar] == 'Bilingual']
+BiLook.mean()
+MonoLook.mean()
+
+[t_value2,p_value2] = ttest_rel(MonoLook, BiLook)
+t_value2
+p_value2
+
+# Number of observations (n_rows) and variables (p_col)
+[n_rows,p_col] = dfSubset.shape
+
+DVmean = dfSubset[DVmain].mean()
+
+
+# List of variable names
+df.columns.values
+
+# Get relevant variables
+attributes = ['TOTAL Difference W-PW','Age','SubLogParentEdAvg', 'Median',
+'SubLogCDI Conceptual Vocab - TOTAL','SubLogBayley Composite Score', 'AnBTotalCor']
+
+#Look at pairwise correlations between relevant variables (and also kernel distribution estimation plot for each variable )
+dataPredict = df[attributes]
+scatter_matrix(dataPredict, alpha = 0.2, figsize = (20, 20), diagonal = 'kde')
+plt.savefig(filePath+'BiStatScatter.png', dpi = 1200, format = 'png')
+
+
+# Compute the correlation matrix
+corrMono = df[attributes][df[GroupVar] == 'Monolingual'].corr()
+corrBi = df[attributes][df[GroupVar] == 'Bilingual'].corr()
+from scipy.stats import pearsonr, spearmanr
+spearmanr(df['TOTAL Difference W-PW'][df[GroupVar] == 'Bilingual'], df['SubLogBayley Composite Score'][df[GroupVar] == 'Bilingual'], nan_policy='omit')
+
+
+
+# Monolingual correlation heatmap
+# Generate a mask for the upper triangle
+mask = np.zeros_like(corrMono, dtype=np.bool)
+mask[np.triu_indices_from(mask)] = True
+
+# Set up the matplotlib figure
+f, ax = plt.subplots(figsize=(11, 9),)
+
+# Generate a custom diverging colormap
+cmap = sns.color_palette("RdBu_r", 7)
+
+# Draw the heatmap with the mask and correct aspect ratio
+sns.heatmap(corrMono, mask=mask, cmap=cmap, vmax=1.0, center=0, vmin=-1,
+            square=True, linewidths=.5, cbar_kws={"shrink": .5})
+labels=['Looking Time Difference Score','Age','Parent Ed','Estimated Income',
+ 'English Vocab', 'Cognitive Composite Score', 'AnotB Correct']
+ax.set_xticklabels(labels, rotation = 35, horizontalalignment= 'right', wrap=True)
+ax.set_yticklabels(labels, wrap=True)
+ax.set_xlabel('Monolingual Correlation Matrix', fontsize=18)
+plt.savefig(filePath+'CorrelationMono.png', dpi = 1200, format = 'png',bbox_inches="tight")
+
+#Bilingual correlation heatmap
+mask = np.zeros_like(corrBi, dtype=np.bool)
+mask[np.triu_indices_from(mask)] = True
+
+# Set up the matplotlib figure
+f, ax = plt.subplots(figsize=(11, 9))
+
+# Generate a custom diverging colormap
+cmap = sns.color_palette("RdBu_r", 7)
+
+# Draw the heatmap with the mask and correct aspect ratio
+sns.heatmap(corrBi, mask=mask, cmap=cmap, vmax=1.0, center=0, vmin=-1,
+            square=True, linewidths=.5, cbar_kws={"shrink": .5})
+labels=['Looking Time Difference Score','Age','Parent Ed','Estimated Income',
+ 'English Vocab','Cognitive Composite Score', 'AnotB Correct']
+ax.set_xticklabels(labels, rotation = 35, horizontalalignment= 'right')
+ax.set_yticklabels(labels)
+ax.set_xlabel('Bilingual Correlation Matrix', fontsize=18)
+plt.savefig(filePath+'CorrelationBi.png', dpi = 1200, format = 'png',bbox_inches="tight")
